@@ -58,7 +58,8 @@ export default () => {
                   id='xUrl'
                   name='xUrl'
                   validations={validations.empty}
-                  placeholder='https://x.com/ozgrozer/status/1812591967756255298'
+                  placeholder='https://x.com/elonmusk/status/1886988219226419711'
+		  value='https://x.com/elonmusk/status/1886988219226419711'
                 />
 
                 <button type='submit' className='submitButton'>
@@ -75,8 +76,8 @@ export default () => {
                 id='width'
                 type='text'
                 name='width'
-                value='1000'
-                placeholder='1000'
+                value='500'
+                placeholder='500'
                 validations={validations.empty}
               />
             </div>
@@ -94,10 +95,17 @@ export default () => {
             </div>
           </div>
 
-          <div className='narrowInputs three'>
+          <div className='narrowInputs four'>
+            <div className='inputWrapper'>
+              <label htmlFor='reqtype'>reqtype</label>
+              <Select id='reqtype' name='reqtype' value='full'>
+                <option value='full'>Full</option>
+                <option value='largest_image'>Largest Image</option>
+              </Select>
+            </div>
             <div className='inputWrapper'>
               <label htmlFor='theme'>Theme</label>
-              <Select id='theme' name='theme' value='light'>
+              <Select id='theme' name='theme' value='dark'>
                 <option value='light'>Light</option>
                 <option value='dark'>Dark</option>
               </Select>
@@ -130,6 +138,10 @@ export default () => {
                       src={`data:image/png;base64,${imageData}`}
                     />
 
+                    <img
+                      className='generatedImage'
+                      src={` data:image/jpeg;charset=utf-8;base64,${imageData}`}
+                    />
                     <button
                       type='button'
                       className='saveImageButton'
@@ -152,16 +164,6 @@ export default () => {
           </div>
         </fieldset>
       </Form>
-
-      <div className='socials'>
-        <a href='https://github.com/ozgrozer/x-image' target='_blank' rel='noreferrer'>
-          <i className='icon icon-github' />
-        </a>
-
-        <a href='https://x.com/ozgrozer' target='_blank' rel='noreferrer'>
-          <i className='icon icon-x' />
-        </a>
-      </div>
     </div>
   )
 }

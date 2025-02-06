@@ -6,17 +6,23 @@ export const maxDuration = 60
 export const dynamic = 'force-dynamic'
 const fs = require('fs');
 const path = require('path');
+var DEBUG_MODE = false;
 
 
 export default async (req, res) => {
   try {
-    const { xUrl, width, theme, padding, hideCard, hideThread } = req.body
+    const { xUrl, width, theme, padding, hideCard, hideThread, reqtype } = req.body
+
+   if(DEBUG_MODE)
+      console.log(`\n #### `, reqtype, `####`);
 
     const lang = 'en'
     const splitUrl = xUrl.split('/')
     const lastItem = splitUrl[splitUrl.length - 1]
     const splitLastItem = lastItem.split('?')
     const xPostId = splitLastItem[0]
+    var largest_image_object = null;
+    var extracted_images_qty = 0;
 
     let browser
     if (process.env.VERCEL_ENV === 'production') {
@@ -35,8 +41,6 @@ export default async (req, res) => {
     }
 
     const page = await browser.newPage()
-    var largest_image_objects = null;
-    var extracted_images_qty = 0;
     page.on('console', async (msg) => {
 	  const msgArgs = msg.args();
 	  for (let i = 0; i < msgArgs.length; ++i) {
@@ -47,19 +51,15 @@ export default async (req, res) => {
         const url = response.url();
 	//console.log(`>>>   [`, url, `]`);
         if (response.request().resourceType() === 'image') {
-		console.log(`>>>   [IMAGE]`);
-		console.log(`>>>      [`, url, `]`);
-		//extracted_images_qty++;
+	  if(DEBUG_MODE){
+	    console.log(`>>>   [IMAGE]`);
+	    console.log(`>>>      [`, url, `]`);
+	  }
             response.buffer().then(file => {
-                const fileName = url.split('/').pop();
-                const filePath = path.resolve(__dirname, fileName);
-		console.log(`>>>      Writing `, file.length, `B file [`, filePath, `]`);
-//		if(!largest_image_object || largest_image_object.length < file.length){
-//			largest_image_object = file;
-//		}
-
-        //        const writeStream = fs.createWriteStream(filePath);
-         //       writeStream.write(file);
+		extracted_images_qty++;
+		if(!largest_image_object || largest_image_object.length < file.length){
+			largest_image_object = file.valueOf();
+		}
             });
         }
     });
@@ -107,25 +107,71 @@ export default async (req, res) => {
       { theme, padding, percent }
     );
     console.log(`Evaluated Page`);
-/*
     if(!largest_image_object){
     	console.log(`***  Failed to identify image ***`);
     }else{
     	console.log(`!-!-!    `, largest_image_object.length, `B Image Extracted from `, extracted_images_qty,` Images! !-!-!`);
+	var filePath = `wow.jpeg`;
+                const writeStream = fs.createWriteStream(filePath);
+                writeStream.write(largest_image_object);
+	console.log(`Wrote => `, filePath);
     }
-*/
+    var imageBuffer = null;
+    var res_sent = false;
 
-    const imageBuffer = await page.screenshot({
+    if(reqtype == 'full'){
+     console.log('[FULL IMAGE]');
+     imageBuffer = await page.screenshot({
       type: 'png',
       fullPage: true,
       encoding: 'base64'
-    })
+     })
+    }else if(reqtype == 'largest_image'){
+     console.log('[LARGEST IMAGE]');
+     if(!largest_image_object){
+	console.log(`  Returning overall tweet`);
+        imageBuffer = await page.screenshot({
+          type: 'png',
+          fullPage: true,
+          encoding: 'base64'
+        })
+    }else{
+	console.log(`  Returning Largest Image`);
+	//imageBuffer = btoa(unescape(encodeURIComponent(largest_image_object)));
+	var filePath = `wow1.jpeg`;
+                const writeStream = fs.createWriteStream(filePath);
+                writeStream.write(largest_image_object);
+
+	//	res.sendFile(filePath);
+
+		const i = fs.readFileSync(filePath)
+		const i1 = btoa(largest_image_object);
+	//imageBuffer = btoa(unescape(encodeURIComponent(largest_image_object)));
+
+	 //       res.setHeader('Content-Type', 'image/jpg')
+	   //     res.send(i)
+
+		res_sent = true;
+
+     }
+/*
+     imageBuffer = await page.screenshot({
+      type: 'png',
+      fullPage: true,
+      encoding: 'base64'
+     })
+*/
+
+    }else{
+	console.log('###ERROR UNHANLDED REQUEST TYPE: ', reqtype);
+    }
 
     if (process.env.VERCEL_ENV !== 'production') {
       await browser.close()
     }
 
-    res.json({ data: imageBuffer })
+    if(!res_sent)
+      res.json({ data: imageBuffer })
   } catch (err) {
     console.log(err)
     res.json({ error: err.message })

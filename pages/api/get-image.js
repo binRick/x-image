@@ -21,8 +21,8 @@ export default async (req, res) => {
     const lastItem = splitUrl[splitUrl.length - 1]
     const splitLastItem = lastItem.split('?')
     const xPostId = splitLastItem[0]
-    var largest_image_object = null;
     var extracted_images_qty = 0;
+    var largest_image = null;
 
     let browser
     if (process.env.VERCEL_ENV === 'production') {
@@ -55,25 +55,29 @@ export default async (req, res) => {
 	    console.log(`>>>   [IMAGE]`);
 	    console.log(`>>>      [`, url, `]`);
 	  }
-            response.buffer().then(file => {
+          response.buffer().then(file => {
 		extracted_images_qty++;
-		if(!largest_image_object || largest_image_object.length < file.length){
-			largest_image_object = file.valueOf();
+		if(!largest_image || largest_image.data.length < file.length){
+			largest_image = {
+			  'url': url,
+			  'data': file.valueOf(),
+			};
 		}
-            });
+          });
         }
     });
-    await page.goto(`https://platform.twitter.com/embed/index.html?dnt=true&embedId=twitter-widget-0&frame=false&hideCard=${hideCard}&hideThread=${hideThread}&id=${xPostId}&lang=${lang}&theme=${theme}&widgetsVersion=ed20a2b%3A1601588405575`, { waitUntil: 'networkidle2' })
-    console.log(`https://platform.twitter.com/embed/index.html?dnt=true&embedId=twitter-widget-0&frame=false&hideCard=${hideCard}&hideThread=${hideThread}&id=${xPostId}&lang=${lang}&theme=${theme}&widgetsVersion=ed20a2b%3A1601588405575`)
+    const turl = `https://platform.twitter.com/embed/index.html?dnt=true&embedId=twitter-widget-0&frame=false&hideCard=${hideCard}&hideThread=${hideThread}&id=${xPostId}&lang=${lang}&theme=${theme}&widgetsVersion=ed20a2b%3A1601588405575`;
+    console.log(`X URL>   `, turl);
+    await page.goto(turl, { waitUntil: 'networkidle2'});
 
     const embedDefaultWidth = 550
     const percent = width / embedDefaultWidth
     const pageWidth = embedDefaultWidth * percent
-    const pageHeight = 2000
+    const pageHeight = 500
     await page.setViewport({ width: pageWidth, height: pageHeight })
 
 
-    await page.evaluate(
+    const eval_res = await page.evaluate(
       (props) => {
 
         const { theme, padding, percent } = props
@@ -87,13 +91,13 @@ export default async (req, res) => {
 
 	console.log('Acquiring images....')
 
-
+/*
 
       const srcs = Array.from(
         document.querySelectorAll("img")
       ).map((image) => image.getAttribute("src"));
     console.log(`Evaluating Page....`, srcs.length, ` Images found`);
-
+*/
         //const imgs = document.getElementsByTagName('img')
 	//console.log(JSON.stringify(imgs));
 	//console.log(`Got `. imgs.length, ` images`);
@@ -103,17 +107,21 @@ export default async (req, res) => {
           body.style.backgroundColor = theme === 'dark' ? '#000' : '#fff'
           body.style.zoom = `${100 * percent}%`
         }
+//	if(largest_image)
+//	        return Promise.resolve(largest_image);
+
       },
       { theme, padding, percent }
     );
     console.log(`Evaluated Page`);
-    if(!largest_image_object){
+//    console.log(`    result: `, JSON.stringify(eval_res));
+    if(!largest_image){
     	console.log(`***  Failed to identify image ***`);
     }else{
-    	console.log(`!-!-!    `, largest_image_object.length, `B Image Extracted from `, extracted_images_qty,` Images! !-!-!`);
+    	console.log(`!-!-!    `, largest_image.data.length, `B Image Extracted from `, extracted_images_qty,` Images! !-!-!`);
 	var filePath = `wow.jpeg`;
                 const writeStream = fs.createWriteStream(filePath);
-                writeStream.write(largest_image_object);
+                writeStream.write(largest_image.data);
 	console.log(`Wrote => `, filePath);
     }
     var imageBuffer = null;
@@ -128,7 +136,7 @@ export default async (req, res) => {
      })
     }else if(reqtype == 'largest_image'){
      console.log('[LARGEST IMAGE]');
-     if(!largest_image_object){
+     if(!largest_image){
 	console.log(`  Returning overall tweet`);
         imageBuffer = await page.screenshot({
           type: 'png',
@@ -137,21 +145,33 @@ export default async (req, res) => {
         })
     }else{
 	console.log(`  Returning Largest Image`);
+	console.log(`  `, largest_image.url);
+	largest_image.url_png = largest_image.url.replace(`format=jpg`,`format=png`);
+	console.log(`  [PNG]> `, largest_image.url_png);
+    	await page.goto(largest_image.url_png, { waitUntil: 'networkidle2'});
+	const buf = await page.goto(largest_image.url_png, { waitUntil: 'networkidle0' }).then(res => res.buffer());
+	console.log(`  [PNG]  `, buf.length, `B`);
+	imageBuffer = await page.screenshot({
+		type: 'png',
+		fullPage: true,
+		encoding: 'base64'
+	})
+
 	//imageBuffer = btoa(unescape(encodeURIComponent(largest_image_object)));
-	var filePath = `wow1.jpeg`;
-                const writeStream = fs.createWriteStream(filePath);
-                writeStream.write(largest_image_object);
+	//var filePath = `wow1.jpeg`;
+        //const writeStream = fs.createWriteStream(filePath);
+        //writeStream.write(largest_image.data);
 
 	//	res.sendFile(filePath);
 
-		const i = fs.readFileSync(filePath)
-		const i1 = btoa(largest_image_object);
+	//const i = fs.readFileSync(filePath)
+	//const i1 = btoa(largest_image.data);
 	//imageBuffer = btoa(unescape(encodeURIComponent(largest_image_object)));
 
-	 //       res.setHeader('Content-Type', 'image/jpg')
-	   //     res.send(i)
+	//       res.setHeader('Content-Type', 'image/jpg')
+	//     res.send(i)
 
-		res_sent = true;
+	//res_sent = true;
 
      }
 /*

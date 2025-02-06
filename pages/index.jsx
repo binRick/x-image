@@ -98,7 +98,7 @@ export default () => {
           <div className='narrowInputs four'>
             <div className='inputWrapper'>
               <label htmlFor='reqtype'>reqtype</label>
-              <Select id='reqtype' name='reqtype' value='full'>
+              <Select id='reqtype' name='reqtype' value='largest_image'>
                 <option value='full'>Full</option>
                 <option value='largest_image'>Largest Image</option>
               </Select>
@@ -136,11 +136,6 @@ export default () => {
                     <img
                       className='generatedImage'
                       src={`data:image/png;base64,${imageData}`}
-                    />
-
-                    <img
-                      className='generatedImage'
-                      src={` data:image/jpeg;charset=utf-8;base64,${imageData}`}
                     />
                     <button
                       type='button'

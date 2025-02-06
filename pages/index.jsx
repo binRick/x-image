@@ -2,6 +2,8 @@ import Head from 'next/head'
 import React, { useState } from 'react'
 import { Form, Input, Select } from 'rfv'
 
+const default_url = `https://x.com/elonmusk/status/1886988219226419711`;
+
 const validations = {
   empty: [
     {
@@ -58,8 +60,8 @@ export default () => {
                   id='xUrl'
                   name='xUrl'
                   validations={validations.empty}
-                  placeholder='https://x.com/elonmusk/status/1886988219226419711'
-		  value='https://x.com/elonmusk/status/1886988219226419711'
+                  placeholder={default_url}
+		  value={default_url}
                 />
 
                 <button type='submit' className='submitButton'>

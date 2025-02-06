@@ -4,8 +4,6 @@ import chromium from '@sparticuz/chromium'
 
 export const maxDuration = 60
 export const dynamic = 'force-dynamic'
-const fs = require('fs');
-const path = require('path');
 var DEBUG_MODE = false;
 
 
@@ -101,15 +99,10 @@ export default async (req, res) => {
       { theme, padding, percent }
     );
     console.log(`Evaluated Page`);
-//    console.log(`    result: `, JSON.stringify(eval_res));
     if(!largest_image){
     	console.log(`***  Failed to identify image ***`);
     }else{
-    	console.log(`!-!-!    `, largest_image.data.length, `B Image Extracted from `, extracted_images_qty,` Images! !-!-!`);
-	var filePath = `wow.jpeg`;
-                const writeStream = fs.createWriteStream(filePath);
-                writeStream.write(largest_image.data);
-	console.log(`Wrote => `, filePath);
+	console.log(`!-!-!    `, largest_image.data.length, `B Image Extracted from `, extracted_images_qty,` Images! !-!-!`);
     }
     var imageBuffer = null;
 
@@ -141,18 +134,13 @@ export default async (req, res) => {
 		fullPage: true,
 		encoding: 'base64'
 	})
-
-
      }
-
     }else{
 	console.log('###ERROR UNHANLDED REQUEST TYPE: ', reqtype);
     }
-
     if (process.env.VERCEL_ENV !== 'production') {
       await browser.close()
     }
-
     res.json({ data: imageBuffer })
   } catch (err) {
     console.log(err)

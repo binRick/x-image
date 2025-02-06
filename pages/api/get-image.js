@@ -90,25 +90,12 @@ export default async (req, res) => {
         //const body = document.querySelector('body')
 
 	console.log('Acquiring images....')
-
-/*
-
-      const srcs = Array.from(
-        document.querySelectorAll("img")
-      ).map((image) => image.getAttribute("src"));
-    console.log(`Evaluating Page....`, srcs.length, ` Images found`);
-*/
-        //const imgs = document.getElementsByTagName('img')
-	//console.log(JSON.stringify(imgs));
-	//console.log(`Got `. imgs.length, ` images`);
         const body = document.querySelector('body')
         if (body) {
           body.style.padding = `${padding}px`
           body.style.backgroundColor = theme === 'dark' ? '#000' : '#fff'
           body.style.zoom = `${100 * percent}%`
         }
-//	if(largest_image)
-//	        return Promise.resolve(largest_image);
 
       },
       { theme, padding, percent }
@@ -125,7 +112,6 @@ export default async (req, res) => {
 	console.log(`Wrote => `, filePath);
     }
     var imageBuffer = null;
-    var res_sent = false;
 
     if(reqtype == 'full'){
      console.log('[FULL IMAGE]');
@@ -148,7 +134,6 @@ export default async (req, res) => {
 	console.log(`  `, largest_image.url);
 	largest_image.url_png = largest_image.url.replace(`format=jpg`,`format=png`);
 	console.log(`  [PNG]> `, largest_image.url_png);
-    	await page.goto(largest_image.url_png, { waitUntil: 'networkidle2'});
 	const buf = await page.goto(largest_image.url_png, { waitUntil: 'networkidle0' }).then(res => res.buffer());
 	console.log(`  [PNG]  `, buf.length, `B`);
 	imageBuffer = await page.screenshot({
@@ -157,30 +142,8 @@ export default async (req, res) => {
 		encoding: 'base64'
 	})
 
-	//imageBuffer = btoa(unescape(encodeURIComponent(largest_image_object)));
-	//var filePath = `wow1.jpeg`;
-        //const writeStream = fs.createWriteStream(filePath);
-        //writeStream.write(largest_image.data);
-
-	//	res.sendFile(filePath);
-
-	//const i = fs.readFileSync(filePath)
-	//const i1 = btoa(largest_image.data);
-	//imageBuffer = btoa(unescape(encodeURIComponent(largest_image_object)));
-
-	//       res.setHeader('Content-Type', 'image/jpg')
-	//     res.send(i)
-
-	//res_sent = true;
 
      }
-/*
-     imageBuffer = await page.screenshot({
-      type: 'png',
-      fullPage: true,
-      encoding: 'base64'
-     })
-*/
 
     }else{
 	console.log('###ERROR UNHANLDED REQUEST TYPE: ', reqtype);
@@ -190,8 +153,7 @@ export default async (req, res) => {
       await browser.close()
     }
 
-    if(!res_sent)
-      res.json({ data: imageBuffer })
+    res.json({ data: imageBuffer })
   } catch (err) {
     console.log(err)
     res.json({ error: err.message })

@@ -44,7 +44,7 @@ export default () => {
       <Head>
         <title>X Image</title>
       </Head>
-
+	<h1>Convert X.com Tweet URL to PNG or extract largest image in tweet to PNG</h1>
       <Form
         onSubmit={onSubmit}
         postSubmit={postSubmit}
@@ -101,8 +101,8 @@ export default () => {
             <div className='inputWrapper'>
               <label htmlFor='reqtype'>reqtype</label>
               <Select id='reqtype' name='reqtype' value='largest_image'>
-                <option value='full'>Full</option>
-                <option value='largest_image'>Largest Image</option>
+                <option value='full'>Full Tweet</option>
+                <option value='largest_image'>Largest Image in Tweet</option>
               </Select>
             </div>
             <div className='inputWrapper'>
@@ -112,7 +112,6 @@ export default () => {
                 <option value='dark'>Dark</option>
               </Select>
             </div>
-
             <div className='inputWrapper'>
               <label htmlFor='hideCard'>Hide Card</label>
               <Select id='hideCard' name='hideCard' value='false'>
